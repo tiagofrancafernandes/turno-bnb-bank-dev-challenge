@@ -1,5 +1,6 @@
 ## Code Challenge
 
+### [wireframes.md](wireframes.md)
 
 Build a simplified banking system
 
