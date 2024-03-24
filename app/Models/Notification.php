@@ -54,6 +54,7 @@ class Notification extends Model
         'link',
         'route',
         'route_params',
+        'classes',
     ];
 
     protected $casts = [

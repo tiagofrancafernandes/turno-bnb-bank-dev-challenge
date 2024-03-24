@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\AccountController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,4 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', fn (Request $request) => $reques
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::match(['get', 'post'], 'notification', NotificationController::class)->name('notifications');
+
+    Route::prefix('account')->name('account.')->group(function () {
+        Route::match(['get', 'post'], 'notification', [AccountController::class, 'index'])->name('index');
+    });
 });

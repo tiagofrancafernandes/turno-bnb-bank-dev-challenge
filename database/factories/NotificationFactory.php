@@ -29,6 +29,7 @@ class NotificationFactory extends Factory
             'route_params' => fn (array $attr) => ($attr['route'] ?? null) === 'ping' ? [
                 'message' => fake()->words(3, true),
             ] : [],
+            'classes' => 'fake-class factory-class',
         ];
     }
 
