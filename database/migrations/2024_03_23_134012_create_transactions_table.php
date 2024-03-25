@@ -15,7 +15,6 @@ return new class() extends Migration {
             $table->string('title');
             $table->integer('type')->index();
             $table->string('amount')->index();
-            $table->datetime('perform_date')->index();
             $table->unsignedBigInteger('account_id')->index();
             $table->boolean('success')->index();
             $table->datetime('performed_on')->index()->nullable();

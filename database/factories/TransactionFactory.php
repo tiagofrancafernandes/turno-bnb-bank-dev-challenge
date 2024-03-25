@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\TransactionType;
 use App\Models\Account;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Transaction>
@@ -19,16 +20,12 @@ class TransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'type' => \Arr::random(TransactionType::cases()),
-            'title' => fn (array $attr) => match ($attr['type'] ?? null) {
-                TransactionType::EXPENSE => 'Product ',
-                TransactionType::INCOME => 'Nominal check ',
-                default => '',
-            } . fake()->words(3, true),
+            'type' => Arr::random(TransactionType::cases()),
+            'title' => fn (array $attr) => TransactionFactory::fakeTitle($attr['type'] ?? null),
             'amount' => rand(100, 1000) . '.' . rand(0, 99),
-            'perform_date' => now()->subMinutes(rand(0, 60)),
             'account_id' => Account::inRandomOrder()?->first() ?? Account::factory(),
             'success' => fake()->boolean(90),
+            'performed_on' => null,
         ];
     }
 
@@ -56,5 +53,52 @@ class TransactionFactory extends Factory
                 'amount' => $amount,
             ])
         );
+    }
+
+    public static function fakeTitle(?TransactionType $type = null): string
+    {
+        $type ??= Arr::random(TransactionType::cases());
+
+        return Arr::random(static::fakeTitleList()[$type?->name] ?? []);
+    }
+
+    public static function fakeTitleList(): array
+    {
+        return [
+            'INCOME' => [
+                'Check deposit',
+                'Check payment',
+                'Bank deposit',
+                'Deposit slip',
+                'Cheque clearance',
+                'Check processing',
+                'Check receipt',
+                'Check receipt confirmation',
+                'Bank transaction',
+                'Check verification',
+            ],
+            'EXPENSE' => [
+                'Supermarket',
+                'Electronics store',
+                'Gas station',
+                'Pharmacy',
+                'Restaurant',
+                'Coffee shop',
+                'Gym membership',
+                'Movie theater',
+                'Hair salon',
+                'Car wash',
+                'Furniture store',
+                'Hardware store',
+                'Jewelry store',
+                'Online shopping',
+                'Pet store',
+                'Travel expenses',
+                'Utility bills',
+                'Clothing store',
+                'Shoe store',
+                'Sporting goods store',
+            ],
+        ];
     }
 }

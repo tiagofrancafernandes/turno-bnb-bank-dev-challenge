@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\ExpenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['get', 'post'], 'notification', NotificationController::class)->name('notifications');
 
     Route::prefix('account')->name('account.')->group(function () {
-        Route::match(['get', 'post'], 'notification', [AccountController::class, 'index'])->name('index');
+        Route::match(['get', 'post'], '/', [AccountController::class, 'index'])->name('index');
+    });
+
+    Route::prefix('expense')->name('expense.')->group(function () {
+        Route::match(['get', 'post'], '/', [ExpenseController::class, 'index'])->name('index');
     });
 });

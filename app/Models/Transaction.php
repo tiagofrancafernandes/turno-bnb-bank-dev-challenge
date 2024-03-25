@@ -12,24 +12,37 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'title',
         'type',
         'amount',
-        'perform_date',
         'account_id',
         'success',
         'performed_on',
         'notice',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'type' => TransactionType::class,
-        'perform_date' => 'datetime',
         'success' => 'boolean',
         'performed_on' => 'datetime',
     ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $appends = [
         'typeEnum',
         'typeLabel',

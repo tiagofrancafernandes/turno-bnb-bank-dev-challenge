@@ -45,6 +45,11 @@ class Notification extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'title',
@@ -57,11 +62,21 @@ class Notification extends Model
         'classes',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'readed' => 'boolean',
         'route_params' => AsCollection::class,
     ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $appends = [
         'actionUrl',
     ];

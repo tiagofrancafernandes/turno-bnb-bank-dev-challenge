@@ -12,6 +12,11 @@ class Account extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'balance',
@@ -61,5 +66,23 @@ class Account extends Model
             'type',
             TransactionType::EXPENSE?->value,
         );
+    }
+
+    /**
+     * Alias to 'incomeTransactions()'
+     * @return HasMany
+     */
+    public function incomes(): HasMany
+    {
+        return $this->incomeTransactions();
+    }
+
+    /**
+     * Alias to 'expenseTransactions()'
+     * @return HasMany
+     */
+    public function expenses(): HasMany
+    {
+        return $this->expenseTransactions();
     }
 }
