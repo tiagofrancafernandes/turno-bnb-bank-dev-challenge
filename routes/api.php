@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\IncomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,5 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('expense')->name('expense.')->group(function () {
         Route::match(['get', 'post'], '/', [ExpenseController::class, 'index'])->name('index');
+    });
+
+    Route::prefix('income')->name('income.')->group(function () {
+        Route::match(['get', 'post'], '/', [IncomeController::class, 'index'])->name('index');
     });
 });
