@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\Formatter;
+use App\Models\Account;
 
 class AccountController extends Controller
 {
@@ -35,7 +36,10 @@ class AccountController extends Controller
 
         abort_if(!$user, 403);
 
-        $account = $user?->account;
+        $account = $user?->account ?? Account::create([ // TODO: validate if != Admin
+            'user_id' => $user?->id,
+            'balance' => 0,
+        ]);
 
         $filterPeriod = $request->input('period', 30);
         $monthToFilter = now()

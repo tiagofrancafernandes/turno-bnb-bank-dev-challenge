@@ -39,3 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::match(['get', 'post'], '/', [TransactionController::class, 'incomes'])->name('index');
     });
 });
+
+Route::name('api.')->group(function () {
+    require __DIR__ . '/auth.php';
+});
