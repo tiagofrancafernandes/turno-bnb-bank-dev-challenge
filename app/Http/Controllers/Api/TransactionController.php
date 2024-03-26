@@ -112,8 +112,10 @@ class TransactionController extends Controller
             )
         );
 
+        $transaction = $transaction?->fresh();
+
         return response()->json([
-            'transaction' => $transaction?->fresh(),
-        ]);
+            'transaction' => $transaction,
+        ], $transaction?->success ? 201 : 402);
     }
 }

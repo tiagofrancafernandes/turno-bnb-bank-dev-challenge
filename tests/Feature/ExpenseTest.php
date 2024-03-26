@@ -135,7 +135,7 @@ class ExpenseTest extends TestCase
             ->actingAs($user)
             ->postJson(route('expenses.create'), $transaction?->toArray());
 
-        $response->assertStatus(200);
+        $response->assertStatus(201);
 
         $response->assertJson(
             fn (AssertableJson $json) =>
@@ -172,7 +172,7 @@ class ExpenseTest extends TestCase
             ->actingAs($user)
             ->postJson(route('expenses.create'), $transaction?->toArray());
 
-        $response->assertStatus(200);
+        $response->assertStatus(402);
 
         $response->assertJson(
             fn (AssertableJson $json) =>
