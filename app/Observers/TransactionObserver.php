@@ -21,7 +21,7 @@ class TransactionObserver
             return;
         }
 
-        if (!$transaction?->success) {
+        if ($transaction?->success === false) {
             return;
         }
 
@@ -68,7 +68,7 @@ class TransactionObserver
             return;
         }
 
-        if (!$transaction?->success) {
+        if ($transaction?->success === false) {
             static::notifyUser($transaction, $account);
 
             return;
@@ -112,7 +112,7 @@ class TransactionObserver
             'performed_on' => now(),
         ]);
 
-        return $transaction;
+        return $transaction?->fresh();
     }
 
     public static function processTransactionOnExpense(
@@ -134,7 +134,7 @@ class TransactionObserver
                 'performed_on' => now(),
             ]);
 
-            return $transaction;
+            return $transaction?->fresh();
         }
 
         match (get_class($account?->getConnection())) {
@@ -151,7 +151,7 @@ class TransactionObserver
             'performed_on' => now(),
         ]);
 
-        return $transaction;
+        return $transaction?->fresh();
     }
 
     /**

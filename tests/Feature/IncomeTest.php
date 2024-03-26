@@ -42,14 +42,14 @@ class IncomeTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->getJson(route('income.index'));
+            ->getJson(route('incomes.index'));
 
         $response->assertStatus(200);
 
         $response->assertJson(
             fn (AssertableJson $json) =>
             $json->whereType('transactions', 'array')
-                ->whereType('transactions.0.amount', 'string')
+                ->whereType('transactions.0.amount', 'string|integer|double')
                 ->whereType('transactions.0.type', 'integer')
                 ->where('transactions.0.type', TransactionType::INCOME?->value)
                 ->etc()
@@ -92,7 +92,7 @@ class IncomeTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->getJson(route('income.index', [
+            ->getJson(route('incomes.index', [
                 'year' => $testDate?->year,
                 'month' => $testDate?->month,
                 'success_only' => true,
@@ -105,7 +105,7 @@ class IncomeTest extends TestCase
         $response->assertJson(
             fn (AssertableJson $json) =>
             $json->whereType('transactions', 'array')
-                ->whereType('transactions.0.amount', 'string')
+                ->whereType('transactions.0.amount', 'string|integer|double')
                 ->whereType('transactions.0.type', 'integer')
                 ->where('transactions.0.type', TransactionType::INCOME?->value)
                 ->etc()

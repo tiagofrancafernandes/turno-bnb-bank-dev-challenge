@@ -30,11 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::match(['get', 'post'], '/', [AccountController::class, 'index'])->name('index');
     });
 
-    Route::prefix('expense')->name('expense.')->group(function () {
+    Route::prefix('expenses')->name('expenses.')->group(function () {
         Route::match(['get', 'post'], '/', [TransactionController::class, 'expenses'])->name('index');
+        Route::post('/create', [TransactionController::class, 'newExpense'])->name('create');
     });
 
-    Route::prefix('income')->name('income.')->group(function () {
+    Route::prefix('incomes')->name('incomes.')->group(function () {
         Route::match(['get', 'post'], '/', [TransactionController::class, 'incomes'])->name('index');
     });
 });

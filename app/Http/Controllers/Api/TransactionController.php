@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Enums\TransactionType;
+use App\Models\Transaction;
 
 class TransactionController extends Controller
 {
@@ -87,6 +88,32 @@ class TransactionController extends Controller
                 'period' => $filterPeriod,
                 'range' => $filterRange,
             ],
+        ]);
+    }
+
+    public function newExpense(Request $request)
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'title' => 'required|string|min:1',
+        ]);
+
+        $user = auth()?->user();
+        abort_if(!$user, 403);
+        $account = $user?->account?->fresh();
+
+        $transaction = Transaction::create(
+            array_merge(
+                $validated,
+                [
+                    'account_id' => $account?->id,
+                    'type' => TransactionType::EXPENSE,
+                ]
+            )
+        );
+
+        return response()->json([
+            'transaction' => $transaction?->fresh(),
         ]);
     }
 }

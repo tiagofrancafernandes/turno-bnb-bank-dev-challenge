@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\TransactionType;
+use Illuminate\Support\Fluent;
 use Tests\TestCase;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +30,7 @@ class ExpenseTest extends TestCase
 
         Transaction::factory()->income()->createOne([
             'account_id' => $account,
-            'amount' => 15000.00,
+            'amount' => 15000,
             'success' => true,
         ]);
 
@@ -42,14 +43,14 @@ class ExpenseTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->getJson(route('expense.index'));
+            ->getJson(route('expenses.index'));
 
         $response->assertStatus(200);
 
         $response->assertJson(
             fn (AssertableJson $json) =>
             $json->whereType('transactions', 'array')
-                ->whereType('transactions.0.amount', 'string')
+                ->whereType('transactions.0.amount', 'string|integer|double')
                 ->whereType('transactions.0.type', 'integer')
                 ->where('transactions.0.type', TransactionType::EXPENSE?->value)
                 ->etc()
@@ -69,7 +70,7 @@ class ExpenseTest extends TestCase
 
         Transaction::factory()->income()->createOne([
             'account_id' => $account,
-            'amount' => 15000.00,
+            'amount' => 15000,
             'success' => true,
         ]);
 
@@ -87,7 +88,7 @@ class ExpenseTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->getJson(route('expense.index', [
+            ->getJson(route('expenses.index', [
                 'year' => $testDate?->year,
                 'month' => $testDate?->month,
                 'success_only' => true,
@@ -107,9 +108,84 @@ class ExpenseTest extends TestCase
         $response->assertJson(
             fn (AssertableJson $json) =>
             $json->whereType('transactions', 'array')
-                ->whereType('transactions.0.amount', 'string')
+                ->whereType('transactions.0.amount', 'string|integer|double')
                 ->whereType('transactions.0.type', 'integer')
                 ->where('transactions.0.type', TransactionType::EXPENSE?->value)
+                ->etc()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function validateExpenseCreation(): void
+    {
+        $user = User::factory()->createOne();
+        $account = Account::factory()->createOne([
+            'user_id' => $user,
+            'balance' => 35000,
+        ]);
+
+        $transaction =  new Fluent([
+            'amount' => 15000,
+            'title' => 'Super Notebook',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('expenses.create'), $transaction?->toArray());
+
+        $response->assertStatus(200);
+
+        $response->assertJson(
+            fn (AssertableJson $json) =>
+            $json->whereType('transaction', 'array')
+                ->whereType('transaction.title', 'string')
+                ->whereType('transaction.amount', 'string|integer|double')
+                ->whereType('transaction.type', 'integer')
+                ->whereType('transaction.success', 'boolean')
+                ->where('transaction.type', TransactionType::EXPENSE?->value)
+                ->where('transaction.success', true)
+                ->where('transaction.title', $transaction?->title)
+                ->where('transaction.amount', $transaction?->amount)
+                ->etc()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function validateExpenseCreationWithInsufficientBalance(): void
+    {
+        $user = User::factory()->createOne();
+        $account = Account::factory()->createOne([
+            'user_id' => $user,
+            'balance' => 5000,
+        ]);
+
+        $transaction =  new Fluent([
+            'amount' => 15000,
+            'title' => 'Super Notebook',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('expenses.create'), $transaction?->toArray());
+
+        $response->assertStatus(200);
+
+        $response->assertJson(
+            fn (AssertableJson $json) =>
+            $json->whereType('transaction', 'array')
+                ->whereType('transaction.title', 'string')
+                ->whereType('transaction.amount', 'string|integer|double')
+                ->whereType('transaction.type', 'integer')
+                ->whereType('transaction.success', 'boolean')
+                ->where('transaction.type', TransactionType::EXPENSE?->value)
+                ->where('transaction.success', false)
+                ->where('transaction.notice', __('Insufficient balance'))
+                ->where('transaction.title', $transaction?->title)
+                ->where('transaction.amount', $transaction?->amount)
                 ->etc()
         );
     }

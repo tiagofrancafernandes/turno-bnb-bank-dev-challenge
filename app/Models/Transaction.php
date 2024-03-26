@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Helpers\Formatter;
 
 class Transaction extends Model
 {
@@ -48,9 +50,9 @@ class Transaction extends Model
         'typeLabel',
     ];
 
-    // protected $dates = [
-    //     'performed_on',
-    // ];
+    protected $dates = [
+        'performed_on',
+    ];
 
     /**
      * Get the account that owns the Transaction
@@ -86,5 +88,15 @@ class Transaction extends Model
     public function getTypeLabelAttribute()
     {
         return $this->type?->label(true);
+    }
+
+    /**
+     * Get the user's first name.
+     */
+    protected function amount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string $value) => Formatter::floatFormat($value),
+        );
     }
 }
