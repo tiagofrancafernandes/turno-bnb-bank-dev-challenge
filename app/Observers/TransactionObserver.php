@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use App\Enums\TransactionType;
 use App\Models\Account;
 use App\Models\Notification;
+use Illuminate\Support\Facades\DB;
 
 class TransactionObserver
 {
@@ -97,7 +98,14 @@ class TransactionObserver
             return $transaction;
         }
 
-        $account?->increment('balance', $transaction?->amount);
+        match (get_class($account?->getConnection())) {
+            \Illuminate\Database\PostgresConnection::class => $account?->update([
+                'balance' => DB::raw('CAST(balance AS numeric) + CAST(' . $transaction?->amount . ' AS numeric)'),
+                'updated_at' => now(),
+            ]),
+            \Illuminate\Database\MySqlConnection::class => $account?->increment('balance', $transaction?->amount),
+            default => $account?->increment('balance', $transaction?->amount),
+        };
 
         $transaction->update([
             'success' => true,
@@ -129,7 +137,14 @@ class TransactionObserver
             return $transaction;
         }
 
-        $account?->decrement('balance', $transaction?->amount);
+        match (get_class($account?->getConnection())) {
+            \Illuminate\Database\PostgresConnection::class => $account?->update([
+                'balance' => DB::raw('CAST(balance AS numeric) - CAST(' . $transaction?->amount . ' AS numeric)'),
+                'updated_at' => now(),
+            ]),
+            \Illuminate\Database\MySqlConnection::class => $account?->decrement('balance', $transaction?->amount),
+            default => $account?->decrement('balance', $transaction?->amount),
+        };
 
         $transaction->update([
             'success' => true,

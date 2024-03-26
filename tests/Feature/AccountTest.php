@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Testing\Fluent\AssertableJson;
+use App\Helpers\Formatter;
 
 class AccountTest extends TestCase
 {
@@ -24,15 +25,15 @@ class AccountTest extends TestCase
             'balance' => 0,
         ]);
 
-        Transaction::factory(4)->income()->create([
+        Transaction::factory()->income()->createOne([
             'account_id' => $account,
-            'amount' => 500.00,
+            'amount' => 5000,
             'success' => true,
         ]);
 
         Transaction::factory(2)->expense()->create([
             'account_id' => $account,
-            'amount' => 500.00,
+            'amount' => 500,
             'success' => true,
         ]);
 
@@ -42,20 +43,18 @@ class AccountTest extends TestCase
 
         $response->assertStatus(200);
 
-        $formatNumber = fn (null|float|string $value) => floatval(number_format($value, 2, '.', ''));
+        $account = $account?->fresh();
 
-        $balance = $formatNumber($response->json('balance'));
-        $incomeAmount = $formatNumber($response->json('incomeTransactions.amount_sum'));
-        $expenseAmount = $formatNumber($response->json('expenseTransactions.amount_sum'));
+        $responseBalance = Formatter::floatFormat($response->json('account.balance'));
 
         $response->assertJson(
             fn (AssertableJson $json) =>
-            $json->whereType('balance', 'string')
-                ->whereType('incomeTransactions.amount_sum', 'null|double|integer')
-                ->whereType('expenseTransactions.amount_sum', 'null|double|integer')
+            $json->whereType('account.balance', 'string')
+                ->whereType('incomeAmount', 'null|double|integer')
+                ->whereType('expenseAmount', 'null|double|integer')
                 ->etc()
         );
 
-        $this->assertEquals(($incomeAmount - $expenseAmount), $balance);
+        $this->assertEquals($account?->balance, $responseBalance);
     }
 }

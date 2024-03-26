@@ -23,6 +23,15 @@ class Account extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        //
+    ];
+
+    /**
      * Get the user that owns the Account
      *
      * @return BelongsTo

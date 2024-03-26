@@ -48,6 +48,10 @@ class Transaction extends Model
         'typeLabel',
     ];
 
+    // protected $dates = [
+    //     'performed_on',
+    // ];
+
     /**
      * Get the account that owns the Transaction
      *
