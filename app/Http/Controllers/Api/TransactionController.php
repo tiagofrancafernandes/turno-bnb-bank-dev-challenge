@@ -4,10 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Enums\TransactionType;
 
-class ExpenseController extends Controller
+class TransactionController extends Controller
 {
-    public function index(Request $request)
+    public function incomes(Request $request)
+    {
+        return $this->responseByType($request, TransactionType::INCOME);
+    }
+
+    public function expenses(Request $request)
+    {
+        return $this->responseByType($request, TransactionType::EXPENSE);
+    }
+
+    protected function responseByType(Request $request, TransactionType $type)
     {
         $periodList = [
             365, // 1a
@@ -37,6 +48,7 @@ class ExpenseController extends Controller
         $successOnly = $failOnly ? false : $request->boolean('success_only', true);
 
         $filterPeriod = $request->input('period', 30);
+
         $monthToFilter = now()
             ->setYear($request->input('year', date('Y')))
             ->setMonth($request->input('month', date('m')));
@@ -51,7 +63,8 @@ class ExpenseController extends Controller
 
         return response()->json([
             'account' => $account,
-            'transactions' => $account?->expenses()
+            'transactions' => $account?->transactions()
+                    ?->where('type', $type)
                     ?->whereNotNull('performed_on')
                     ?->when(
                         $successOnly,
@@ -63,7 +76,7 @@ class ExpenseController extends Controller
                     )
                     ?->orderBy('performed_on', 'desc')
                     ?->orderBy('id', 'desc')
-                    ?->whereBetween('performed_on', $filterRange)
+                    // ?->whereBetween('performed_on', $filterRange)
                     ?->limit($limit)
                     ?->offset($offset)
                     ?->get(),

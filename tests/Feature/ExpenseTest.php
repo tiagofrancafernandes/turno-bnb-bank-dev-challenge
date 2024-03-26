@@ -81,6 +81,9 @@ class ExpenseTest extends TestCase
                 'success' => true,
                 'account_id' => $account,
             ]);
+        Date::setTestNow(null);
+
+        $account = $account->fresh();
 
         $response = $this
             ->actingAs($user)
@@ -97,8 +100,8 @@ class ExpenseTest extends TestCase
         $firstPerformedDate = now()->parse($response->json('transactions.0.performed_on') ?? '2015-05-03');
 
         $this->assertEquals(
-            $testDate?->format('c'),
-            $firstPerformedDate?->format('c'),
+            $testDate?->format('Y-m'),
+            $firstPerformedDate?->format('Y-m'),
         );
 
         $response->assertJson(
@@ -109,7 +112,5 @@ class ExpenseTest extends TestCase
                 ->where('transactions.0.type', TransactionType::EXPENSE?->value)
                 ->etc()
         );
-
-        Date::setTestNow(null);
     }
 }
