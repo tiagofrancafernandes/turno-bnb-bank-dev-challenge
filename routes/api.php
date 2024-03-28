@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\CheckController;
+use App\Http\Controllers\Api\Admin\AdminCheckController;
+use App\Http\Controllers\Common\AppFileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +41,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('incomes')->name('incomes.')->group(function () {
         Route::match(['get', 'post'], '/', [TransactionController::class, 'incomes'])->name('index');
     });
+
+    Route::prefix('checks')->name('checks.')->group(function () {
+        Route::match(['get', 'post'], '/', [CheckController::class, 'index'])->name('index');
+        Route::post('/deposit', [CheckController::class, 'deposit'])->name('deposit');
+        Route::match(['get', 'post'], '/{check}/show', [CheckController::class, 'show'])->name('show');
+        Route::delete('/{check}/destroy', [CheckController::class, 'destroy'])->name('destroy');
+    });
 });
+
+Route::middleware('auth:sanctum')
+    ->prefix('admin')->name('admin.')
+    ->group(function () {
+        Route::prefix('checks')->name('checks.')->group(function () {
+            Route::match(['get', 'post'], '/', [AdminCheckController::class, 'index'])->name('index');
+            Route::match(['get', 'post'], '/{check}/show', [AdminCheckController::class, 'show'])->name('show');
+            Route::post('/{check}/update', [AdminCheckController::class, 'update'])->name('update');
+        });
+    });
+
+Route::prefix('app_file')->name('app_file.')
+    ->group(function () {
+        Route::match(['get', 'post'], '/{appFile}/show', [AppFileController::class, 'show'])->name('show');
+    });
 
 Route::name('api.')->group(function () {
     require __DIR__ . '/auth.php';
