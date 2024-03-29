@@ -21,7 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read Account|null $account
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Notification> $notifications
  * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
@@ -37,7 +38,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
- * @property-read Account|null $account
  * @mixin \Eloquent
  */
 class User extends Authenticatable
@@ -95,5 +95,27 @@ class User extends Authenticatable
     public function account(): HasOne
     {
         return $this->hasOne(Account::class);
+    }
+
+    public function getAccountOrCreate(null|int|float $balance = null): ?Account
+    {
+        if ($this->{'isAdmin'}) {
+            return null;
+        }
+
+        // TODO: validate if != Admin
+
+        if ($this?->account) {
+            return $this?->account;
+        }
+
+        $account = $this?->account ?? Account::firstOrCreate([
+            'user_id' => $this?->id,
+        ], [
+            'user_id' => $this?->id,
+            'balance' => $balance ?? 0,
+        ]);
+
+        return $account ?: null;
     }
 }

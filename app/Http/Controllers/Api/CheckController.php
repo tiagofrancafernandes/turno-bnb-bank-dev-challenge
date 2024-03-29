@@ -6,8 +6,8 @@ use App\Models\Check;
 use App\Http\Requests\CheckDepositRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Account;
 use App\Models\AppFile;
+use Illuminate\Database\Eloquent\Builder;
 
 class CheckController extends Controller
 {
@@ -16,7 +16,26 @@ class CheckController extends Controller
      */
     public function index(Request $request)
     {
-        //
+        $user = auth()?->user();
+
+        abort_if(!$user, 403);
+
+        $isAdmin = $request->boolean('isAdmin', false); // TODO: change to use policy
+
+        $query = Check::latest('id')
+            ->with('appFile')
+            ->when(
+                !$isAdmin,
+                fn (Builder $query) => $query->forUser()
+            )
+            ->when(
+                $request->input('status'),
+                fn (Builder $query, $status) => $query->byStatus($status)
+            );
+
+        return response()->json(
+            $query?->paginate(20),
+        );
     }
 
     /**
@@ -28,10 +47,7 @@ class CheckController extends Controller
 
         abort_if(!$user, 403);
 
-        $account = $user?->account ?? Account::create([ // TODO: validate if != Admin
-            'user_id' => $user?->id,
-            'balance' => 0,
-        ]);
+        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
 
         $preparedFile = AppFile::prepareFile(
             sourcePath: $request?->file('check_image')?->getRealPath(),
@@ -49,33 +65,51 @@ class CheckController extends Controller
             'user_id' => $user?->id,
         ]) : null;
 
-        return response()->json([
-            // $request?->file('check_image')?->extension(),
-            // $request?->file('check_image')?->getFilename(),
-            // $request?->file('check_image')?->getPath(),
-            // $request?->file('check_image')?->getRealPath(),
-            // $request?->file('check_image')?->getClientMimeType(),
-            // $request?->file('check_image')?->getClientOriginalName(),
-            // $request?->file('check_image')?->getClientOriginalExtension(),
-            // $request?->file('check_image')?->getSize(),
+        if (!$appFile) {
+            return response()->json([
+                'message' => __('Fail on upload check image'),
+            ], 422);
+        }
 
-            'deposit' => [
-                'title' => $request->input('title'),
-                'amount' => $request->input('amount'),
-                'success' => true,
-                'status' => 30,
-                'check_image_url' => $appFile?->url,
-                'account' => $account?->id,
-            ],
+        $check = Check::create([
+            'title' => $request->input('title'),
+            'amount' => $request->input('amount'),
+            'status' => \App\Enums\CheckStatus::WAITING,
+            'check_image_file_id' => $appFile?->id,
+            'account_id' => $account?->id,
+        ]);
+
+        return response()->json([
+            'deposit' => $check->only([
+                'title',
+                'amount',
+                'status',
+                'checkImageUrl',
+                'account_id',
+            ]),
+            'success' => true,
         ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Check $check)
+    public function show(Request $request, string|int $check)
     {
-        //
+        $isAdmin = $request->boolean('isAdmin', false); // TODO: change to use policy
+
+        $query = Check::when(
+            !$isAdmin,
+            fn (Builder $query) => $query->forUser()
+        );
+
+        $check = $query->where('id', $check)->firstOrFail();
+
+        $appFilePath = $check?->getStoragePath();
+
+        abort_if(!$appFilePath, 404);
+
+        return response()->file($appFilePath);
     }
 
     /**

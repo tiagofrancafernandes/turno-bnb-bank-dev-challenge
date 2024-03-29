@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Enums\TransactionType;
 use App\Models\Transaction;
-use App\Models\Account;
 
 class TransactionController extends Controller
 {
@@ -44,10 +43,7 @@ class TransactionController extends Controller
 
         abort_if(!$user, 403);
 
-        $account = $user?->account ?? Account::create([ // TODO: validate if != Admin
-            'user_id' => $user?->id,
-            'balance' => 0,
-        ]);
+        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
 
         $failOnly = $request->boolean('fail_only');
         $successOnly = $failOnly ? false : $request->boolean('success_only', true);
@@ -105,10 +101,7 @@ class TransactionController extends Controller
         $user = auth()?->user();
         abort_if(!$user, 403);
 
-        $account = $user?->account ?? Account::create([ // TODO: validate if != Admin
-            'user_id' => $user?->id,
-            'balance' => 0,
-        ]);
+        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
 
         $transaction = Transaction::create(
             array_merge(

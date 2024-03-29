@@ -22,28 +22,28 @@ use Illuminate\Database\Eloquent\Builder;
  * @property \Illuminate\Support\Collection|null $route_params
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $classes
  * @property-read mixed $action_url
  * @property-read User $user
  * @method static \Database\Factories\NotificationFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder|Notification newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Notification newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Notification query()
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereIcon($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereLink($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereReaded($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereRoute($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereRouteParams($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereText($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Notification whereUserId($value)
- * @property string|null $classes
+ * @method static Builder|Notification newModelQuery()
+ * @method static Builder|Notification newQuery()
  * @method static Builder|Notification ofUser(?\App\Models\User $user = null)
+ * @method static Builder|Notification query()
  * @method static Builder|Notification readOnly()
  * @method static Builder|Notification unreadOnly()
  * @method static Builder|Notification whereClasses($value)
+ * @method static Builder|Notification whereCreatedAt($value)
+ * @method static Builder|Notification whereIcon($value)
+ * @method static Builder|Notification whereId($value)
+ * @method static Builder|Notification whereLink($value)
+ * @method static Builder|Notification whereReaded($value)
+ * @method static Builder|Notification whereRoute($value)
+ * @method static Builder|Notification whereRouteParams($value)
+ * @method static Builder|Notification whereText($value)
+ * @method static Builder|Notification whereTitle($value)
+ * @method static Builder|Notification whereUpdatedAt($value)
+ * @method static Builder|Notification whereUserId($value)
  * @mixin \Eloquent
  */
 class Notification extends Model

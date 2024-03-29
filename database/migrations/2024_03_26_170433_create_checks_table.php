@@ -12,7 +12,17 @@ return new class() extends Migration {
     {
         Schema::create('checks', function (Blueprint $table) {
             $table->id();
+            $table->string('title')->index();
+            $table->string('amount')->index();
+            $table->integer('status')->index()->default(App\Enums\CheckStatus::CREATED?->value);
+            $table->unsignedBigInteger('check_image_file_id')?->nullable();
+            $table->unsignedBigInteger('account_id')->index();
             $table->timestamps();
+            $table->index('created_at');
+            $table->index('updated_at');
+
+            $table->foreign('check_image_file_id')->references('id')->on('app_files');
+            $table->foreign('account_id')->references('id')->on('accounts');
         });
     }
 

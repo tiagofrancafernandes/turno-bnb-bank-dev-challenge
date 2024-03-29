@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Account;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -48,10 +47,7 @@ class InitialAppSeeder extends Seeder
     public function generateTransactions(User $user)
     {
         $user = auth()?->user();
-        $account = $user?->account ?? Account::create([
-            'user_id' => $user?->id,
-            'balance' => 0,
-        ]);
+        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
 
         Transaction::factory(15)->create([
             'account_id' => $account,
