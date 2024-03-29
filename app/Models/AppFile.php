@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Fluent;
 
 /**
  *
@@ -142,5 +143,66 @@ class AppFile extends Model
     public function getUrlAttribute()
     {
         return $this->url();
+    }
+
+    /**
+     * prepareFile function
+     *
+     * @param string|null $sourcePath
+     * @param string|null $diskName
+     * @param string|null $dirToSave
+     * @param ?string $prefix
+     * @param ?string $originalName
+     *
+     * @return Fluent|null
+     */
+    public static function prepareFile(
+        ?string $sourcePath = null,
+        ?string $diskName = null,
+        ?string $dirToSave = null,
+        ?string $prefix = null,
+        ?string $originalName = null,
+    ): ?Fluent {
+        if (!$sourcePath || !is_file($sourcePath)) {
+            return null;
+        }
+
+        $diskName = in_array($diskName, [
+            'local',
+            'public',
+        ]) ? $diskName : 'public';
+
+        $storage = Storage::disk($diskName);
+
+        $originalName = pathinfo($originalName ?? $sourcePath, PATHINFO_BASENAME);
+        $originalExtension = pathinfo($originalName ?? $sourcePath, PATHINFO_EXTENSION);
+
+        $prefix = ($prefix ?: '') . rand(10, 99) . uniqid() . '-';
+
+        $dirToSave = $dirToSave ? str($dirToSave)->trim('/\\')?->toString() : '';
+
+        $finalPath = str($originalName)
+            ->prepend($prefix)
+            ->beforeLast('.')
+            ->slug()
+            ->when(
+                $originalExtension,
+                fn ($str) => $str->append('.' . $originalExtension)
+            )
+            ->prepend($dirToSave . '/')
+            ->toString();
+
+        $exists = $storage->exists($finalPath);
+
+        if (!$exists) {
+            $exists = $storage->put($finalPath, file_get_contents($sourcePath));
+        }
+
+        return $exists ? new Fluent([
+            'finalPath' => $finalPath,
+            'originalName' => $originalName,
+            'diskName' => $diskName,
+            'storage' => $storage,
+        ]) : null;
     }
 }

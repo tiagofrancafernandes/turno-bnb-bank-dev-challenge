@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Account;
 use Illuminate\Support\Fluent;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 
 // use Illuminate\Support\Facades\Storage;
 
@@ -34,7 +35,17 @@ class CheckTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('check_image');
 
-        $file = UploadedFile::fake()->image(database_path('static-files/images/check_image.png'));
+        $reallyUploadTestFile = false; // TODO: use config to get it
+
+        $sourcePath = database_path('static-files/images/check_image.png');
+
+        $file = $reallyUploadTestFile ? new UploadedFile(
+            path: $sourcePath,
+            originalName: pathinfo($sourcePath, PATHINFO_BASENAME),
+            mimeType: File::mimeType($sourcePath),
+            error: null,
+            test: true,
+        ) : UploadedFile::fake()->image($sourcePath);
 
         $deposit = new Fluent([
             'amount' => 5000,
@@ -63,6 +74,11 @@ class CheckTest extends TestCase
                 ->etc()
         );
 
-        $this->assertTrue(boolval(filter_var($response?->json('deposit.check_image_url'), FILTER_VALIDATE_URL)));
+        $imageUrl = filter_var($response?->json('deposit.check_image_url'), FILTER_VALIDATE_URL);
+        $this->assertTrue(boolval($imageUrl));
+
+        $this->get($imageUrl)
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', $file?->getClientMimeType());
     }
 }

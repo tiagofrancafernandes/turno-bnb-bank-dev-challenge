@@ -4,8 +4,8 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Fluent;
+use App\Models\AppFile;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AppFile>
@@ -23,7 +23,6 @@ class AppFileFactory extends Factory
             'path' => static::getFakeFile(
                 sourcePath: database_path('static-files/images/check_image.png'),
                 diskName: 'public',
-                randomPrefix: true,
             )?->finalPath,
             'original_name' => 'check_image.png',
             'disk' => 'public',
@@ -39,7 +38,7 @@ class AppFileFactory extends Factory
      * @param string|null $sourcePath
      * @param string|null $diskName
      * @param string|null $dirToSave
-     * @param bool $randomPrefix
+     * @param string|null $prefix
      *
      * @return static
      */
@@ -47,13 +46,13 @@ class AppFileFactory extends Factory
         ?string $sourcePath = null,
         ?string $diskName = null,
         ?string $dirToSave = null,
-        bool $randomPrefix = false,
+        ?string $prefix = null,
     ): static {
         $fakeFile = static::getFakeFile(
             sourcePath: $sourcePath,
             diskName: $diskName,
             dirToSave: $dirToSave,
-            randomPrefix: $randomPrefix,
+            prefix: $prefix,
         );
 
         return $this->state(fn (array $attributes) => [
@@ -69,7 +68,7 @@ class AppFileFactory extends Factory
      * @param string|null $sourcePath
      * @param string|null $diskName
      * @param string|null $dirToSave
-     * @param bool $randomPrefix
+     * @param ?string $prefix
      *
      * @return Fluent|null
      */
@@ -77,46 +76,18 @@ class AppFileFactory extends Factory
         ?string $sourcePath = null,
         ?string $diskName = null,
         ?string $dirToSave = null,
-        bool $randomPrefix = false,
+        ?string $prefix = null,
     ): ?Fluent {
-        $diskName = in_array($diskName, [
-            'local',
-            'public',
-        ]) ? $diskName : 'public';
+        $dirToSave = $dirToSave ? str($dirToSave)->trim('/\\')?->toString() : str('fake-files/images');
 
-        $storage = Storage::disk($diskName);
-        $sourcePath = $sourcePath && is_file($sourcePath)
-            ? $sourcePath : database_path('static-files/images/check_image.png');
+        $sourcePath ??= database_path('static-files/images/check_image.png');
 
-        $originalName = pathinfo($sourcePath, PATHINFO_BASENAME);
-        $originalExtension = pathinfo($sourcePath, PATHINFO_EXTENSION);
-
-        $prefix = $randomPrefix ? rand(10, 99) . uniqid() . '-' : 'fake-file-';
-
-        $dirToSave = $dirToSave ? str($dirToSave)->trim('/\\')?->toString()
-            : str('fake-files/images')?->toString();
-
-        $finalPath = str($originalName)
-            ->prepend($prefix)
-            ->beforeLast('.')
-            ->slug()
-            ->when(
-                $originalExtension,
-                fn ($str) => $str->append('.' . $originalExtension)
-            )
-            ->prepend($dirToSave . '/')
-            ->toString();
-
-        $exists = $storage->exists($finalPath);
-
-        if (!$exists) {
-            $exists = $storage->put($finalPath, file_get_contents($sourcePath));
-        }
-
-        return $exists ? new Fluent([
-            'finalPath' => $finalPath,
-            'originalName' => $originalName,
-            'diskName' => $diskName,
-        ]) : null;
+        return AppFile::prepareFile(
+            sourcePath: $sourcePath,
+            diskName: $diskName,
+            dirToSave: $dirToSave,
+            prefix: $prefix ?? 'fake-file-',
+            originalName: pathinfo($sourcePath, PATHINFO_BASENAME),
+        );
     }
 }

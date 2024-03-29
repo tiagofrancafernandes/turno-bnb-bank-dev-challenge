@@ -7,6 +7,7 @@ use App\Http\Requests\CheckDepositRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Account;
+use App\Models\AppFile;
 
 class CheckController extends Controller
 {
@@ -32,6 +33,22 @@ class CheckController extends Controller
             'balance' => 0,
         ]);
 
+        $preparedFile = AppFile::prepareFile(
+            sourcePath: $request?->file('check_image')?->getRealPath(),
+            diskName: 'public',
+            dirToSave: implode('/', ['check-images', 'user-' . $user?->id]),
+            prefix: date('Y-m-d-'),
+            originalName: $request?->file('check_image')?->getClientOriginalName(),
+        );
+
+        $appFile = $preparedFile ? AppFile::create([
+            'path' => $preparedFile?->finalPath,
+            'original_name' => $preparedFile?->originalName ?: $request?->file('check_image')?->getClientOriginalName(),
+            'disk' => $preparedFile?->diskName ?: 'public',
+            'public' => false,
+            'user_id' => $user?->id,
+        ]) : null;
+
         return response()->json([
             // $request?->file('check_image')?->extension(),
             // $request?->file('check_image')?->getFilename(),
@@ -47,7 +64,7 @@ class CheckController extends Controller
                 'amount' => $request->input('amount'),
                 'success' => true,
                 'status' => 30,
-                'check_image_url' => url(''),
+                'check_image_url' => $appFile?->url,
                 'account' => $account?->id,
             ],
         ], 201);
