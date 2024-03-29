@@ -51,10 +51,15 @@ class AppFileTest extends TestCase
             'isAdmin' => true, // TODO: change to use policy
         ]))->assertStatus(200); // ADMIN
 
-        $noUserPublicFakeFile = AppFile::factory()->createOne([
-            'user_id' => null,
-            'public' => true,
-        ]);
+        $noUserPublicFakeFile = AppFile::factory()
+            ->useFakeFile(
+                sourcePath: database_path('static-files/images/check_image.png'),
+                diskName: 'public',
+            )
+            ->createOne([
+                'user_id' => null,
+                'public' => true,
+            ]);
 
         $this->assertTrue(AppFile::where('id', $noUserPublicFakeFile?->id)->exists());
 
@@ -65,5 +70,9 @@ class AppFileTest extends TestCase
             'appFile' => $noUserPublicFakeFile?->id,
             'isAdmin' => true, // TODO: change to use policy
         ]))->assertStatus(200); // ADMIN
+
+        $this->get(route('app_file.show', $noUserPublicFakeFile?->id))
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
     }
 }

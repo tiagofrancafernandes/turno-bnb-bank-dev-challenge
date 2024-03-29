@@ -19,6 +19,10 @@ class AppFileController extends Controller
         ->where('id', $appFile)
         ->firstOrFail();
 
-        return response()->json([]);
+        $appFilePath = $appFile?->getStoragePath();
+
+        abort_if(!$appFilePath, 404);
+
+        return response()->file($appFilePath);
     }
 }
