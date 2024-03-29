@@ -39,6 +39,11 @@ use Illuminate\Database\Eloquent\Builder;
  * @method static \Illuminate\Database\Eloquent\Builder|Notification whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Notification whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Notification whereUserId($value)
+ * @property string|null $classes
+ * @method static Builder|Notification ofUser(?\App\Models\User $user = null)
+ * @method static Builder|Notification readOnly()
+ * @method static Builder|Notification unreadOnly()
+ * @method static Builder|Notification whereClasses($value)
  * @mixin \Eloquent
  */
 class Notification extends Model

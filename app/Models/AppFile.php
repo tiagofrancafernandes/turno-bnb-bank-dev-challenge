@@ -9,6 +9,36 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
 
+/**
+ *
+ *
+ * @property int $id
+ * @property string $path
+ * @property string|null $original_name
+ * @property string $disk
+ * @property int|null $user_id
+ * @property bool $public
+ * @property \Illuminate\Support\Carbon|null $expires_in
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $url
+ * @property-read User|null $user
+ * @method static \Database\Factories\AppFileFactory factory($count = null, $state = [])
+ * @method static Builder|AppFile forUser(?\App\Models\User $user = null)
+ * @method static Builder|AppFile newModelQuery()
+ * @method static Builder|AppFile newQuery()
+ * @method static Builder|AppFile query()
+ * @method static Builder|AppFile whereCreatedAt($value)
+ * @method static Builder|AppFile whereDisk($value)
+ * @method static Builder|AppFile whereExpiresIn($value)
+ * @method static Builder|AppFile whereId($value)
+ * @method static Builder|AppFile whereOriginalName($value)
+ * @method static Builder|AppFile wherePath($value)
+ * @method static Builder|AppFile wherePublic($value)
+ * @method static Builder|AppFile whereUpdatedAt($value)
+ * @method static Builder|AppFile whereUserId($value)
+ * @mixin \Eloquent
+ */
 class AppFile extends Model
 {
     use HasFactory;

@@ -10,6 +10,40 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Helpers\Formatter;
 
+/**
+ *
+ *
+ * @property int $id
+ * @property string $title
+ * @property TransactionType $type
+ * @property-read float $amount
+ * @property int $account_id
+ * @property bool|null $success
+ * @property \Illuminate\Support\Carbon|null $performed_on
+ * @property string|null $notice
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Account $account
+ * @property-read mixed $type_enum
+ * @property-read mixed $type_label
+ * @method static Builder|Transaction expensesOnly()
+ * @method static \Database\Factories\TransactionFactory factory($count = null, $state = [])
+ * @method static Builder|Transaction incomesOnly()
+ * @method static Builder|Transaction newModelQuery()
+ * @method static Builder|Transaction newQuery()
+ * @method static Builder|Transaction query()
+ * @method static Builder|Transaction whereAccountId($value)
+ * @method static Builder|Transaction whereAmount($value)
+ * @method static Builder|Transaction whereCreatedAt($value)
+ * @method static Builder|Transaction whereId($value)
+ * @method static Builder|Transaction whereNotice($value)
+ * @method static Builder|Transaction wherePerformedOn($value)
+ * @method static Builder|Transaction whereSuccess($value)
+ * @method static Builder|Transaction whereTitle($value)
+ * @method static Builder|Transaction whereType($value)
+ * @method static Builder|Transaction whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Transaction extends Model
 {
     use HasFactory;

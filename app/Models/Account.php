@@ -8,6 +8,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Enums\TransactionType;
 
+/**
+ *
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $balance
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $expenseTransactions
+ * @property-read int|null $expense_transactions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $expenses
+ * @property-read int|null $expenses_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $incomeTransactions
+ * @property-read int|null $income_transactions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $incomes
+ * @property-read int|null $incomes_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $transactions
+ * @property-read int|null $transactions_count
+ * @property-read User $user
+ * @method static \Database\Factories\AccountFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder|Account newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Account newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Account query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Account whereBalance($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Account whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Account whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Account whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Account whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Account extends Model
 {
     use HasFactory;
