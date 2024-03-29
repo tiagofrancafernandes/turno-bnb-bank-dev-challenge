@@ -35,7 +35,7 @@ class CheckTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('check_image');
 
-        $reallyUploadTestFile = false; // TODO: use config to get it
+        $reallyUploadTestFile = config('bnb.tests.upload_real_file', false);
 
         $sourcePath = database_path('static-files/images/check_image.png');
 
