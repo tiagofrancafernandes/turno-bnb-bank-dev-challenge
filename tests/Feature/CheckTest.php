@@ -99,10 +99,6 @@ class CheckTest extends TestCase
         $count = 15;
         Check::factory($count)->account($this->account)->create();
 
-        $response = $this->actingAs($this->user)->postJson(route('checks.index'));
-
-        $response->assertStatus(200);
-
         $this->actingAs($this->user)->postJson(route('checks.index'))
             ->assertStatus(200)
             ?->assertJson(
@@ -128,10 +124,6 @@ class CheckTest extends TestCase
     public function listWithStatusFilter(CheckStatus $enum, int $count, array $payload = []): void
     {
         Check::factory($count)->account($this->account)->status($enum)->create();
-
-        $response = $this->actingAs($this->user)->postJson(route('checks.index'));
-
-        $response->assertStatus(200);
 
         $this->actingAs($this->user)->postJson(route('checks.index', $payload))
             ->assertStatus(200)
@@ -185,5 +177,46 @@ class CheckTest extends TestCase
                 ],
             ],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function testCheckShow(): void
+    {
+        $check = Check::factory()->account($this->account)->status(CheckStatus::WAITING)->createOne();
+
+        $this->actingAs($this->user)->postJson(route('checks.show', $check?->id))
+            ->assertStatus(200)
+            ?->assertJson(
+                fn (AssertableJson $json) =>
+                $json->whereType('title', 'string')
+                    ->whereType('amount', 'string|integer|double')
+                    ->whereType('check_image_file_id', 'integer')
+                    ->whereType('account_id', 'integer')
+                    ->whereType('checkImageUrl', 'string')
+                    ->whereType('appFile', 'array')
+                    ->whereType('appFile.id', 'integer')
+                    ->where('account_id', $this->account?->id)
+                    ->where('title', $check?->title)
+                    ->where('amount', $check?->amount)
+                    ->where('status', $check?->status?->value)
+                    ->etc()
+            );
+    }
+
+    /**
+     * @test
+     */
+    public function testCheckShowOfAnotherUser(): void
+    {
+        $user = User::factory()->createOne();
+        $check = Check::factory()->account($this->account)->status(CheckStatus::WAITING)->createOne();
+
+        $this->actingAs($this->user)->postJson(route('checks.show', $check?->id))
+            ->assertStatus(200);
+
+        $this->actingAs($user)->postJson(route('checks.show', $check?->id))
+            ->assertStatus(404);
     }
 }

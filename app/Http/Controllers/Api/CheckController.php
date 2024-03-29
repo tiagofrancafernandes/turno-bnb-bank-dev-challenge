@@ -105,11 +105,7 @@ class CheckController extends Controller
 
         $check = $query->where('id', $check)->firstOrFail();
 
-        $appFilePath = $check?->getStoragePath();
-
-        abort_if(!$appFilePath, 404);
-
-        return response()->file($appFilePath);
+        return response()->json($check);
     }
 
     /**
