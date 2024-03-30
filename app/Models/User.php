@@ -77,6 +77,10 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    protected $appends = [
+        'isAdmin',
+    ];
+
     /**
      * Get all of the notifications for the User
      *
@@ -99,11 +103,9 @@ class User extends Authenticatable
 
     public function getAccountOrCreate(null|int|float $balance = null): ?Account
     {
-        if ($this->{'isAdmin'}) {
+        if ($this->isAdmin()) {
             return null;
         }
-
-        // TODO: validate if != Admin
 
         if ($this?->account) {
             return $this?->account;
@@ -117,5 +119,16 @@ class User extends Authenticatable
         ]);
 
         return $account ?: null;
+    }
+
+    public function isAdmin(): bool
+    {
+        // Maybe Ill use role here ?!
+        return str($this?->email)->lower()->endsWith('@admin.com');
+    }
+
+    public function getIsAdminAttribute()
+    {
+        return $this->isAdmin();
     }
 }

@@ -109,19 +109,23 @@ class Check extends Model
         return $this->scopeForAccount($query, $account);
     }
 
-    public function scopeForAccount(Builder $query, ?Account $account = null): Builder
-    {
+    public function scopeForAccount(
+        Builder $query,
+        ?Account $account = null,
+        ?User $user = null,
+        bool $strict = true,
+    ): Builder {
         $user ??= auth()?->user();
 
-        if (!$user && !$account) {
-            return $query->where('account_id', 0);
+        if (!$user) {
+            return $strict ? $query->where('account_id', 0) : $query;
         }
 
-        if ($user?->isAdmin) {
-            return $query;
-        }
+        $account ??= $user?->isAdmin() ? null : $user?->getAccountOrCreate(0);
 
-        $account ??= $user?->getAccountOrCreate(0);
+        if (!$account) {
+            return $strict ? $query->where('account_id', 0) : $query;
+        }
 
         return $query->where('account_id', $account?->id);
     }

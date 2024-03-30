@@ -16,17 +16,15 @@ class CheckController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()?->user();
+        $user = $request->user();
 
         abort_if(!$user, 403);
-
-        $isAdmin = $request->boolean('isAdmin', false); // TODO: change to use policy
 
         $query = Check::latest('id')
             ->with('appFile')
             ->when(
-                !$isAdmin,
-                fn (Builder $query) => $query->forUser()
+                !$user?->isAdmin(),
+                fn (Builder $query) => $query->forUser($user)
             )
             ->when(
                 $request->input('status'),
@@ -96,11 +94,11 @@ class CheckController extends Controller
      */
     public function show(Request $request, string|int $check)
     {
-        $isAdmin = $request->boolean('isAdmin', false); // TODO: change to use policy
+        $user = $request->user();
 
         $query = Check::when(
-            !$isAdmin,
-            fn (Builder $query) => $query->forUser()
+            !$user?->isAdmin(),
+            fn (Builder $query) => $query->forUser($user)
         );
 
         $check = $query->where('id', $check)->firstOrFail();
