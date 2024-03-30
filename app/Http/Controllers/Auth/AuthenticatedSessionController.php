@@ -26,7 +26,12 @@ class AuthenticatedSessionController extends Controller
 
         $user = auth()?->user();
 
-        $token = $user?->createToken('api_login');
+        $abilities = collect($request->input('abilities'))
+            ->filter(fn ($item) => is_string($item) && !is_numeric($item) && trim(($item)))
+            ->map(fn ($item) => trim($item))
+            ->toArray() ?: ['*'];
+
+        $token = $user?->createToken('api_login', $abilities);
 
         return response()->json([
             'accessToken' => [
@@ -41,8 +46,17 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): Response
+    public function destroy(Request $request): Response|JsonResponse
     {
+        if ($request->expectsJson()) {
+            $deleted = $request->user()->currentAccessToken()->delete();
+
+            return response()->json([
+                'message' => $deleted ? __('Logout completed successfully') : __('Failed to log off'),
+                'deleted' => boolval($deleted),
+            ], $deleted ? 200 : 422);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

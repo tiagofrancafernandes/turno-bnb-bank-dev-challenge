@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\CheckController;
 use App\Http\Controllers\Api\Admin\AdminCheckController;
 use App\Http\Controllers\Common\AppFileController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,8 +24,6 @@ use App\Http\Controllers\Common\AppFileController;
 Route::any('ping/{message?}', fn (?string $message = null) => ['message' => $message ?? 'pong'])
     ->where('message', '[a-zA-Z0-9\-\ ]{0,}')
     ->name('ping');
-
-Route::middleware('auth:sanctum')->get('/user', fn (Request $request) => $request->user());
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::match(['get', 'post'], 'notification', NotificationController::class)->name('notifications');
@@ -65,6 +64,17 @@ Route::prefix('app_file')->name('app_file.')
         Route::match(['get', 'post'], '/{appFile}/show', [AppFileController::class, 'show'])->name('show');
     });
 
-Route::name('api.')->group(function () {
+Route::name('api.auth.')->prefix('auth')->group(function () {
     require __DIR__ . '/auth.php';
+
+    Route::middleware('auth:sanctum')
+        ->group(function () {
+            Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+            Route::match(
+                ['get', 'post'],
+                '/me',
+                fn (Request $request) => response()->json($request->user()?->currentAccessToken())
+            )->name('me');
+        });
 });

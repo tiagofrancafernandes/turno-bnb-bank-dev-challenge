@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Http\JsonResponse;
 
 class RegisteredUserController extends Controller
 {
@@ -18,7 +19,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): Response
+    public function store(Request $request): Response|JsonResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -27,15 +28,37 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return response()->noContent();
+        if (!$request->expectsJson()) {
+            $request?->session()->regenerate();
+
+            return response()->noContent();
+        }
+
+        $user = auth()?->user();
+
+        $abilities = collect($request->input('abilities'))
+            ->filter(fn ($item) => is_string($item) && !is_numeric($item) && trim(($item)))
+            ->map(fn ($item) => trim($item))
+            ->toArray() ?: ['*'];
+
+        $token = $user?->createToken('api_login', $abilities);
+
+        return response()->json([
+            'accessToken' => [
+                'token' => $token?->plainTextToken,
+                'id' => $token?->accessToken?->id,
+                'expires_at' => $token?->accessToken?->expires_at,
+                'abilities' => $token?->accessToken?->abilities,
+            ]
+        ]);
     }
 }
