@@ -13,6 +13,7 @@ return [
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
+    'use_temp_dir' => filter_var(env('FS_USE_TEMP_DIR', false), FILTER_VALIDATE_BOOL),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,13 +31,15 @@ return [
     'disks' => [
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app'),
+            'root' => filter_var(env('FS_USE_TEMP_DIR', false), FILTER_VALIDATE_BOOL)
+                ? sys_get_temp_dir() . '/laravel-app-storage/app' : storage_path('app'),
             'throw' => false,
         ],
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => filter_var(env('FS_USE_TEMP_DIR', false), FILTER_VALIDATE_BOOL)
+                ? sys_get_temp_dir() . '/laravel-app-storage/public' : storage_path('app/public'),
             'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,

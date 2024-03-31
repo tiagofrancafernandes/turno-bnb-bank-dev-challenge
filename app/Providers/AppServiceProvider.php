@@ -19,6 +19,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->validateTempDirs();
+    }
+
+    public function validateTempDirs(): void
+    {
+        if (!config('filesystems.use_temp_dir', false)) {
+            return;
+        }
+
+        collect(config('filesystems.disks'))
+            ->filter(fn ($item) => ($item['driver'] ?? null) === 'local')
+            ->pluck('root')
+            ->each(fn ($dir) => !is_dir($dir) && mkdir($dir, 0777, true));
     }
 }

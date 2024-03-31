@@ -14,6 +14,37 @@ class AccountTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected ?User $user = null;
+    protected ?User $adminUser = null;
+    protected ?Account $account = null;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->createOne();
+        $this->adminUser = User::factory()->createOne([
+            'email' => fake()->bothify('??????***@admin.com'),
+        ]);
+
+        $this->account = Account::factory()->createOne([
+            'user_id' => $this->user,
+            'balance' => 0,
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function validateAccountCreate()
+    {
+        $userAccount = $this->user?->getAccountOrCreate(0);
+
+        $this->assertNotNull($userAccount);
+        $this->assertEquals($userAccount?->id, $this->account?->id);
+        $this->assertNull($this->adminUser?->getAccountOrCreate(0));
+    }
+
     /**
      * @test
      */

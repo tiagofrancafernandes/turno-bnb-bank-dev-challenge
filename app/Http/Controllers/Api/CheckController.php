@@ -43,7 +43,13 @@ class CheckController extends Controller
     {
         $user = auth()?->user();
 
-        abort_if(!$user, 403);
+        abort_if(!$user, 401, 'Unauthenticated.');
+
+        if ($user?->isAdmin()) {
+            return response()->json([
+                'message' => 'Forbidden.',
+            ], 403);
+        }
 
         $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
 

@@ -21,14 +21,18 @@ class CheckTest extends TestCase
     use RefreshDatabase;
 
     protected ?User $user = null;
+    protected ?User $adminUser = null;
     protected ?Account $account = null;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        // Crie um usuário de teste
         $this->user = User::factory()->createOne();
+        $this->adminUser = User::factory()->createOne([
+            'email' => fake()->bothify('??????***@admin.com'),
+        ]);
+
         $this->account = Account::factory()->createOne([
             'user_id' => $this->user,
             'balance' => 0,
@@ -94,6 +98,39 @@ class CheckTest extends TestCase
     /**
      * @test
      */
+    public function failOnCreateNewCheckDepositAsAdmin(): void
+    {
+        $reallyUploadTestFile = config('bnb.tests.upload_real_file', false);
+
+        $sourcePath = database_path('static-files/images/check_image.png');
+
+        $file = $reallyUploadTestFile ? new UploadedFile(
+            path: $sourcePath,
+            originalName: pathinfo($sourcePath, PATHINFO_BASENAME),
+            mimeType: File::mimeType($sourcePath),
+            error: null,
+            test: true,
+        ) : UploadedFile::fake()->image($sourcePath);
+
+        $deposit = new Fluent([
+            'amount' => 5000,
+            'title' => 'Salary payment',
+            'check_image' => $file,
+        ]);
+
+        $this->actingAs($this->adminUser)->postJson(route('checks.deposit'), $deposit?->toArray())
+            ->assertStatus(403)
+            ->assertJson(
+                fn (AssertableJson $json) =>
+                $json->whereType('message', 'string')
+                    ->where('message', 'Forbidden.')
+                    ->etc()
+            );
+    }
+
+    /**
+     * @test
+     */
     public function listWithoutStatusFilter(): void
     {
         $count = 15;
@@ -101,20 +138,20 @@ class CheckTest extends TestCase
 
         $this->actingAs($this->user)->postJson(route('checks.index'))
             ->assertStatus(200)
-            ?->assertJson(
-                fn (AssertableJson $json) =>
-                $json->whereType('data', 'array')
-                    ->whereType('data.0.title', 'string')
-                    ->whereType('data.0.amount', 'string|integer|double')
-                    ->whereType('data.0.check_image_file_id', 'integer')
-                    ->whereType('data.0.account_id', 'integer')
-                    ->whereType('data.0.checkImageUrl', 'string')
-                    ->whereType('data.0.appFile', 'array')
-                    ->whereType('data.0.appFile.id', 'integer')
-                    ->count('data', $count)
-                    ->where('data.0.account_id', $this->account?->id)
-                    ->etc()
-            );
+                ?->assertJson(
+                    fn (AssertableJson $json) =>
+                    $json->whereType('data', 'array')
+                        ->whereType('data.0.title', 'string')
+                        ->whereType('data.0.amount', 'string|integer|double')
+                        ->whereType('data.0.check_image_file_id', 'integer')
+                        ->whereType('data.0.account_id', 'integer')
+                        ->whereType('data.0.checkImageUrl', 'string')
+                        ->whereType('data.0.appFile', 'array')
+                        ->whereType('data.0.appFile.id', 'integer')
+                        ->count('data', $count)
+                        ->where('data.0.account_id', $this->account?->id)
+                        ->etc()
+                );
     }
 
     /**
@@ -127,22 +164,22 @@ class CheckTest extends TestCase
 
         $this->actingAs($this->user)->postJson(route('checks.index', $payload))
             ->assertStatus(200)
-            ?->assertJson(
-                fn (AssertableJson $json) =>
-                $json->whereType('data', 'array')
-                    ->whereType('data.0.title', 'string')
-                    ->whereType('data.0.amount', 'string|integer|double')
-                    ->whereType('data.0.check_image_file_id', 'integer')
-                    ->whereType('data.0.account_id', 'integer')
-                    ->whereType('data.0.checkImageUrl', 'string')
-                    ->whereType('data.0.appFile', 'array')
-                    ->whereType('data.0.appFile.id', 'integer')
-                    ->count('data', $count)
-                    ->where('data.0.account_id', $this->account?->id)
+                ?->assertJson(
+                    fn (AssertableJson $json) =>
+                    $json->whereType('data', 'array')
+                        ->whereType('data.0.title', 'string')
+                        ->whereType('data.0.amount', 'string|integer|double')
+                        ->whereType('data.0.check_image_file_id', 'integer')
+                        ->whereType('data.0.account_id', 'integer')
+                        ->whereType('data.0.checkImageUrl', 'string')
+                        ->whereType('data.0.appFile', 'array')
+                        ->whereType('data.0.appFile.id', 'integer')
+                        ->count('data', $count)
+                        ->where('data.0.account_id', $this->account?->id)
 
-                    ->where('data.0.status', $enum?->value)
-                    ->etc()
-            );
+                        ->where('data.0.status', $enum?->value)
+                        ->etc()
+                );
     }
 
     public static function checkStatusEnumDataProvider()
@@ -188,21 +225,21 @@ class CheckTest extends TestCase
 
         $this->actingAs($this->user)->postJson(route('checks.show', $check?->id))
             ->assertStatus(200)
-            ?->assertJson(
-                fn (AssertableJson $json) =>
-                $json->whereType('title', 'string')
-                    ->whereType('amount', 'string|integer|double')
-                    ->whereType('check_image_file_id', 'integer')
-                    ->whereType('account_id', 'integer')
-                    ->whereType('checkImageUrl', 'string')
-                    ->whereType('appFile', 'array')
-                    ->whereType('appFile.id', 'integer')
-                    ->where('account_id', $this->account?->id)
-                    ->where('title', $check?->title)
-                    ->where('amount', $check?->amount)
-                    ->where('status', $check?->status?->value)
-                    ->etc()
-            );
+                ?->assertJson(
+                    fn (AssertableJson $json) =>
+                    $json->whereType('title', 'string')
+                        ->whereType('amount', 'string|integer|double')
+                        ->whereType('check_image_file_id', 'integer')
+                        ->whereType('account_id', 'integer')
+                        ->whereType('checkImageUrl', 'string')
+                        ->whereType('appFile', 'array')
+                        ->whereType('appFile.id', 'integer')
+                        ->where('account_id', $this->account?->id)
+                        ->where('title', $check?->title)
+                        ->where('amount', $check?->amount)
+                        ->where('status', $check?->status?->value)
+                        ->etc()
+                );
     }
 
     /**
