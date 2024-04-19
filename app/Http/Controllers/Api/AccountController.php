@@ -35,7 +35,7 @@ class AccountController extends Controller
 
         abort_if(!$user, 403);
 
-        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
+        $account = $user?->getAccountOrCreate(0);
 
         $filterPeriod = $request->input('period', 30);
         $monthToFilter = now()

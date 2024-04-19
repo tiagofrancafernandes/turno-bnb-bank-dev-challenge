@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class CheckDepositRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class CheckDepositRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::user()?->can('deposit', \App\Models\Check::class);
     }
 
     /**

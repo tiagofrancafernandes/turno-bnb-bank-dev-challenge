@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\CheckController;
-use App\Http\Controllers\Api\Admin\AdminCheckController;
 use App\Http\Controllers\Common\AppFileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -46,18 +45,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/deposit', [CheckController::class, 'deposit'])->name('deposit');
         Route::match(['get', 'post'], '/{check}/show', [CheckController::class, 'show'])->name('show');
         Route::delete('/{check}/destroy', [CheckController::class, 'destroy'])->name('destroy');
+        Route::post('/{check}/updateStatus', [CheckController::class, 'updateStatus'])
+            ->name('update-status');
     });
 });
-
-Route::middleware('auth:sanctum')
-    ->prefix('admin')->name('admin.')
-    ->group(function () {
-        Route::prefix('checks')->name('checks.')->group(function () {
-            Route::match(['get', 'post'], '/', [AdminCheckController::class, 'index'])->name('index');
-            Route::match(['get', 'post'], '/{check}/show', [AdminCheckController::class, 'show'])->name('show');
-            Route::post('/{check}/update', [AdminCheckController::class, 'update'])->name('update');
-        });
-    });
 
 Route::prefix('app_file')->name('app_file.')
     ->group(function () {

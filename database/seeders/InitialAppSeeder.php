@@ -6,7 +6,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Arr;
 
 class InitialAppSeeder extends Seeder
 {
@@ -22,32 +21,48 @@ class InitialAppSeeder extends Seeder
     {
         $users = [
             [
+                'name' => 'Admin',
+                'email' => 'admin@admin.com',
+                'password' => Hash::make('password'),
+            ],
+            [
                 'name' => 'Admin 1',
                 'email' => 'admin@mail.com',
                 'password' => Hash::make('power@123'),
-                'admin' => true,
             ],
             [
                 'name' => 'Customer 1',
                 'email' => 'customer1@mail.com',
                 'password' => Hash::make('power@123'),
-                'admin' => false,
             ],
         ];
 
         foreach ($users as $userData) {
             $user = User::updateOrCreate([
                 'email' => $userData['email'],
-            ], Arr::except($userData, ['admin']));
+            ], $userData);
 
-            // $user->... TODO: apply roles and permissions
+            if ($user?->isAdmin()) {
+                continue;
+            }
+
+            static::generateTransactions($user);
         }
     }
 
-    public function generateTransactions(User $user)
+    public static function generateTransactions(?User $user = null): void
     {
-        $user = auth()?->user();
-        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
+        $user ??= auth()?->user();
+
+        if (!$user || !$user?->isAdmin()) {
+            return;
+        }
+
+        $account = $user?->getAccountOrCreate(0);
+
+        if (!$account) {
+            return;
+        }
 
         Transaction::factory(15)->create([
             'account_id' => $account,

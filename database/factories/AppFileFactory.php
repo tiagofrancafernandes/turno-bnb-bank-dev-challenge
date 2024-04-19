@@ -23,7 +23,7 @@ class AppFileFactory extends Factory
             'path' => static::getFakeFile(
                 sourcePath: database_path('static-files/images/check_image.png'),
                 diskName: 'public',
-            )?->finalPath,
+            )?->finalPath ?? null,
             'original_name' => 'check_image.png',
             'disk' => 'public',
             'user_id' => fake()->boolean(10) ? (User::inRandomOrder()?->first() ?: User::factory()) : null,
@@ -56,7 +56,7 @@ class AppFileFactory extends Factory
         );
 
         return $this->state(fn (array $attributes) => [
-            'path' => $fakeFile?->finalPath,
+            'path' => $fakeFile?->finalPath ?? null,
             'original_name' => $fakeFile?->originalName,
             'disk' => $fakeFile?->diskName,
         ]);

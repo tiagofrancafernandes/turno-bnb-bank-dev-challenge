@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Admin;
 
 use App\Models\Check;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -136,7 +136,7 @@ class CheckTest extends TestCase
         $count = 15;
         Check::factory($count)->account($this->account)->create();
 
-        $this->actingAs($this->user)->postJson(route('checks.index'))
+        $this->actingAs($this->adminUser)->postJson(route('checks.index'))
             ->assertStatus(200)
                 ?->assertJson(
                     fn (AssertableJson $json) =>
@@ -248,12 +248,159 @@ class CheckTest extends TestCase
     public function testCheckShowOfAnotherUser(): void
     {
         $user = User::factory()->createOne();
+        $userAccount = Account::factory()->createOne([
+            'user_id' => $user,
+            'balance' => 0,
+        ]);
+
         $check = Check::factory()->account($this->account)->status(CheckStatus::WAITING)->createOne();
 
-        $this->actingAs($this->user)->postJson(route('checks.show', $check?->id))
+        $accountCheck = Check::factory()->account($this->account)->status(CheckStatus::WAITING)->createOne();
+        $userAccountCheck = Check::factory()->account($userAccount)->status(CheckStatus::WAITING)->createOne();
+
+        $this->actingAs($this->user)->postJson(route('checks.show', $accountCheck?->id))
             ->assertStatus(200);
 
-        $this->actingAs($user)->postJson(route('checks.show', $check?->id))
+        $this->actingAs($user)->postJson(route('checks.show', $userAccountCheck?->id))
+            ->assertStatus(200);
+
+        $this->actingAs($user)->postJson(route('checks.show', $accountCheck?->id))
             ->assertStatus(404);
+
+        $this->actingAs($this->adminUser)->postJson(route('checks.show', $accountCheck?->id))
+            ->assertStatus(200);
+
+        $this->actingAs($this->adminUser)->postJson(route('checks.show', $userAccountCheck?->id))
+            ->assertStatus(200);
+    }
+
+    /**
+     * @test
+     */
+    public function testUpdateCheckStatus(): void
+    {
+        $user = User::factory()->createOne();
+        $userAccount = Account::factory()->createOne([
+            'user_id' => $user,
+            'balance' => 0,
+        ]);
+
+        $userAccountCheck = Check::factory()->account($userAccount)->status(CheckStatus::WAITING)->createOne();
+
+        $this->postJson(route('checks.update-status', $userAccountCheck?->id))
+            ->assertStatus(401);
+
+        $this->actingAs($user)->postJson(route('checks.show', $userAccountCheck?->id))
+            ->assertStatus(200);
+
+        $this->actingAs($this->user)->postJson(route('checks.show', $userAccountCheck?->id))
+            ->assertStatus(404);
+
+        $this->actingAs($this->adminUser)->postJson(route('checks.show', $userAccountCheck?->id))
+            ->assertStatus(200);
+
+        $this->actingAs($user)->postJson(route('checks.update-status', $userAccountCheck?->id))
+            ->assertStatus(403);
+    }
+
+    /**
+     * @test
+     * @dataProvider statusCheckerDataProvider
+     */
+    public function statusChecker(
+        int $status,
+        array $data,
+        array $whereTypes,
+        array $whereValues,
+    ) {
+        $user = User::factory()->createOne();
+        $userAccount = Account::factory()->createOne([
+            'user_id' => $user,
+            'balance' => 0,
+        ]);
+
+        $userAccountCheck = Check::factory()->account($userAccount)->status(CheckStatus::WAITING)->createOne();
+
+        $response = $this->actingAs($this->adminUser)->postJson(
+            route('checks.update-status', $userAccountCheck?->id),
+            $data
+        )
+            ->assertStatus($status);
+
+        foreach ($whereTypes as $column => $type) {
+            $response?->assertJson(
+                fn (AssertableJson $json) => $json->whereType('message', 'string')
+                    ->whereType($column, $type)
+                    ->etc()
+            );
+        }
+
+        foreach ($whereValues as $column => $value) {
+            $response?->assertJson(
+                fn (AssertableJson $json) => $json->whereType('message', 'string')
+                    ->where($column, $value)
+                    ->etc()
+            );
+        }
+
+        // $this->actingAs($this->adminUser)->postJson(
+        //     route('checks.update-status', $userAccountCheck?->id),
+        //     [
+        //         'status' => CheckStatus::CANCELED?->value,
+        //     ]
+        // )
+        //     ->assertStatus(422)
+        //         ?->assertJson(
+        //         fn(AssertableJson $json) => $json->whereType('message', 'string')
+        //             ->whereType('errors', 'array')
+        //             ->where('message', 'The selected status is invalid. ')
+        //             ->etc()
+        //     );
+
+        // $this->actingAs($this->adminUser)->postJson(
+        //     route('checks.update-status', $userAccountCheck?->id),
+        //     [
+        //         'status' => CheckStatus::REJECTED?->value,
+        //     ]
+        // )
+        //     ->assertStatus(200);
+    }
+
+    public static function statusCheckerDataProvider(): array
+    {
+        return [
+            'no status' => [
+                'status' => 422,
+                'data' => [
+                    //
+                ],
+                'whereTypes' => [],
+                'whereValues' => [],
+            ],
+            'invalid status' => [
+                'status' => 422,
+                'data' => [
+                    'status' => CheckStatus::CANCELED?->value,
+                ],
+                'whereTypes' => [
+                    'errors' => 'array',
+                ],
+                'whereValues' => [
+                    'message' => 'The selected status is invalid.',
+                ],
+            ],
+            'valid status' => [
+                'status' => 200,
+                'data' => [
+                    'status' => CheckStatus::REJECTED?->value,
+                ],
+                'whereTypes' => [
+                    //
+                ],
+                'whereValues' => [
+                    //
+                ],
+            ],
+        ];
     }
 }

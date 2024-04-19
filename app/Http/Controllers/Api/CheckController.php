@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AppFile;
 use Illuminate\Database\Eloquent\Builder;
+use App\Http\Requests\ApprovalCheckRequest;
 
 class CheckController extends Controller
 {
@@ -16,6 +17,8 @@ class CheckController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Check::class);
+
         $user = $request->user();
 
         abort_if(!$user, 403);
@@ -45,13 +48,7 @@ class CheckController extends Controller
 
         abort_if(!$user, 401, 'Unauthenticated.');
 
-        if ($user?->isAdmin()) {
-            return response()->json([
-                'message' => 'Forbidden.',
-            ], 403);
-        }
-
-        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
+        $account = $user?->getAccountOrCreate(0);
 
         $preparedFile = AppFile::prepareFile(
             sourcePath: $request?->file('check_image')?->getRealPath(),
@@ -109,13 +106,32 @@ class CheckController extends Controller
 
         $check = $query->where('id', $check)->firstOrFail();
 
+        $this->authorize('view', $check);
+
         return response()->json($check);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Check $check)
+    public function destroy(Request $request, string|int $check)
+    {
+        $user = $request->user();
+
+        $query = Check::when(
+            !$user?->isAdmin(),
+            fn (Builder $query) => $query->forUser($user)
+        );
+
+        $check = $query->where('id', $check)->firstOrFail();
+
+        $this->authorize('delete', $check);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function updateStatus(ApprovalCheckRequest $request, Check $check)
     {
         //
     }

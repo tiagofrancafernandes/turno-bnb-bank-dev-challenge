@@ -43,7 +43,7 @@ class TransactionController extends Controller
 
         abort_if(!$user, 403);
 
-        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
+        $account = $user?->getAccountOrCreate(0);
 
         $failOnly = $request->boolean('fail_only');
         $successOnly = $failOnly ? false : $request->boolean('success_only', true);
@@ -101,7 +101,7 @@ class TransactionController extends Controller
         $user = auth()?->user();
         abort_if(!$user, 403);
 
-        $account = $user?->getAccountOrCreate(0); // TODO: validate if != Admin
+        $account = $user?->getAccountOrCreate(0);
 
         $transaction = Transaction::create(
             array_merge(
